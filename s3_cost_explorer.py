@@ -6,6 +6,7 @@ Retrieve storage costs and storage tiers for S3 buckets
 
 import boto3
 import click
+import csv
 from datetime import datetime, timedelta
 from tabulate import tabulate
 from botocore.exceptions import ClientError, NoCredentialsError
@@ -208,7 +209,8 @@ def cli():
 
 @cli.command()
 @click.option('--days', default=30, help='Number of days to analyze (default: 30)')
-def costs(days):
+@click.option('--csv', 'output_csv', help='Export to CSV file')
+def costs(days, output_csv):
     """Get S3 storage costs for the specified period"""
     explorer = S3CostExplorer()
     
@@ -219,17 +221,26 @@ def costs(days):
     
     detailed_costs = explorer.get_detailed_s3_costs(days)
     if detailed_costs:
-        click.echo("\nDetailed Cost Breakdown:")
         table_data = []
         for usage_type, cost in sorted(detailed_costs.items(), key=lambda x: x[1], reverse=True):
             table_data.append([usage_type, f"${cost:.2f}"])
         
-        click.echo(tabulate(table_data, headers=['Usage Type', 'Cost'], tablefmt='grid'))
+        if output_csv:
+            with open(output_csv, 'w', newline='') as csvfile:
+                writer = csv.writer(csvfile)
+                writer.writerow(['Usage Type', 'Cost'])
+                for usage_type, cost in sorted(detailed_costs.items(), key=lambda x: x[1], reverse=True):
+                    writer.writerow([usage_type, f"${cost:.2f}"])
+            click.echo(f"Cost data exported to {output_csv}")
+        else:
+            click.echo("\nDetailed Cost Breakdown:")
+            click.echo(tabulate(table_data, headers=['Usage Type', 'Cost'], tablefmt='grid'))
 
 
 @cli.command()
 @click.option('--detailed', is_flag=True, help='Show detailed storage tier breakdown')
-def buckets(detailed):
+@click.option('--csv', 'output_csv', help='Export to CSV file')
+def buckets(detailed, output_csv):
     """List all S3 buckets with storage information"""
     explorer = S3CostExplorer()
     
@@ -259,17 +270,28 @@ def buckets(detailed):
             table_data.append([bucket, "No data", "N/A"])
     
     if table_data:
-        if detailed:
-            click.echo("\nS3 Bucket Storage Tiers (Detailed):")
-            click.echo(tabulate(table_data, headers=['Bucket', 'Storage Tier', 'Size'], tablefmt='grid'))
+        if output_csv:
+            with open(output_csv, 'w', newline='') as csvfile:
+                writer = csv.writer(csvfile)
+                if detailed:
+                    writer.writerow(['Bucket', 'Storage Tier', 'Size'])
+                else:
+                    writer.writerow(['Bucket', 'Total Size', 'Storage Types'])
+                writer.writerows(table_data)
+            click.echo(f"Bucket data exported to {output_csv}")
         else:
-            click.echo("\nS3 Bucket Storage Summary:")
-            click.echo(tabulate(table_data, headers=['Bucket', 'Total Size', 'Storage Types'], tablefmt='grid'))
+            if detailed:
+                click.echo("\nS3 Bucket Storage Tiers (Detailed):")
+                click.echo(tabulate(table_data, headers=['Bucket', 'Storage Tier', 'Size'], tablefmt='grid'))
+            else:
+                click.echo("\nS3 Bucket Storage Summary:")
+                click.echo(tabulate(table_data, headers=['Bucket', 'Total Size', 'Storage Types'], tablefmt='grid'))
 
 
 @cli.command()
 @click.argument('bucket_name')
-def bucket_details(bucket_name):
+@click.option('--csv', 'output_csv', help='Export to CSV file')
+def bucket_details(bucket_name, output_csv):
     """Get detailed storage tier information for a specific bucket"""
     explorer = S3CostExplorer()
     
@@ -287,9 +309,18 @@ def bucket_details(bucket_name):
         table_data.append([storage_type, readable_size])
         total_size += size_bytes
     
-    click.echo(f"\nStorage Tier Breakdown for {bucket_name}:")
-    click.echo(tabulate(table_data, headers=['Storage Tier', 'Size'], tablefmt='grid'))
-    click.echo(f"\nTotal Size: {explorer.format_bytes(total_size)}")
+    if output_csv:
+        with open(output_csv, 'w', newline='') as csvfile:
+            writer = csv.writer(csvfile)
+            writer.writerow(['Storage Tier', 'Size'])
+            writer.writerows(table_data)
+            # Add total size as the last row
+            writer.writerow(['Total', explorer.format_bytes(total_size)])
+        click.echo(f"Bucket details exported to {output_csv}")
+    else:
+        click.echo(f"\nStorage Tier Breakdown for {bucket_name}:")
+        click.echo(tabulate(table_data, headers=['Storage Tier', 'Size'], tablefmt='grid'))
+        click.echo(f"\nTotal Size: {explorer.format_bytes(total_size)}")
 
 
 if __name__ == '__main__':
