@@ -33,6 +33,12 @@ python s3_cost_explorer.py costs
 python s3_cost_explorer.py costs --days 7
 ```
 
+### Export costs to CSV:
+```bash
+python s3_cost_explorer.py costs --csv costs.csv
+python s3_cost_explorer.py costs --days 7 --csv costs_7days.csv
+```
+
 ### List all buckets with storage tier information:
 ```bash
 python s3_cost_explorer.py buckets
@@ -43,9 +49,20 @@ python s3_cost_explorer.py buckets
 python s3_cost_explorer.py buckets --detailed
 ```
 
+### Export bucket information to CSV:
+```bash
+python s3_cost_explorer.py buckets --csv buckets.csv
+python s3_cost_explorer.py buckets --detailed --csv buckets_detailed.csv
+```
+
 ### Get detailed storage tier info for a specific bucket:
 ```bash
 python s3_cost_explorer.py bucket-details my-bucket-name
+```
+
+### Export bucket details to CSV:
+```bash
+python s3_cost_explorer.py bucket-details my-bucket-name --csv bucket_details.csv
 ```
 
 ## Features
@@ -55,6 +72,7 @@ python s3_cost_explorer.py bucket-details my-bucket-name
 - Supports multiple storage classes (Standard, IA, Glacier, Deep Archive, etc.)
 - Human-readable size formatting
 - Clean tabular output
+- CSV export functionality for all commands
 
 ## Requirements
 
