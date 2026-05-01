@@ -1,5 +1,11 @@
 # AWS S3 Cost Explorer
 
+[![CI](https://github.com/idvoretskyi/aws-s3-cost-explorer/actions/workflows/ci.yml/badge.svg)](https://github.com/idvoretskyi/aws-s3-cost-explorer/actions/workflows/ci.yml)
+[![Release](https://github.com/idvoretskyi/aws-s3-cost-explorer/actions/workflows/release.yml/badge.svg)](https://github.com/idvoretskyi/aws-s3-cost-explorer/actions/workflows/release.yml)
+[![Latest Release](https://img.shields.io/github/v/release/idvoretskyi/aws-s3-cost-explorer)](https://github.com/idvoretskyi/aws-s3-cost-explorer/releases/latest)
+[![Go Version](https://img.shields.io/github/go-mod/go-version/idvoretskyi/aws-s3-cost-explorer)](go.mod)
+[![Go Report Card](https://goreportcard.com/badge/github.com/idvoretskyi/aws-s3-cost-explorer)](https://goreportcard.com/report/github.com/idvoretskyi/aws-s3-cost-explorer)
+
 A CLI tool to retrieve S3 storage costs and storage tiers for buckets in your AWS account.
 
 Written in Go. Produces a single self-contained binary — no runtime or virtualenv required.
