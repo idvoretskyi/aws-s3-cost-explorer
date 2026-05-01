@@ -51,51 +51,51 @@ export AWS_REGION=...
 ### Get S3 costs for the last 30 days
 
 ```bash
-./aws-s3-cost-explorer costs
+aws-s3-cost-explorer costs
 ```
 
 ### Get costs for a specific period
 
 ```bash
-./aws-s3-cost-explorer costs --days 7
+aws-s3-cost-explorer costs --days 7
 ```
 
 ### Export costs to CSV
 
 ```bash
-./aws-s3-cost-explorer costs --csv costs.csv
-./aws-s3-cost-explorer costs --days 7 --csv costs_7days.csv
+aws-s3-cost-explorer costs --csv costs.csv
+aws-s3-cost-explorer costs --days 7 --csv costs_7days.csv
 ```
 
 ### List all buckets with storage tier information
 
 ```bash
-./aws-s3-cost-explorer buckets
+aws-s3-cost-explorer buckets
 ```
 
 ### List all buckets with detailed storage tier breakdown
 
 ```bash
-./aws-s3-cost-explorer buckets --detailed
+aws-s3-cost-explorer buckets --detailed
 ```
 
 ### Export bucket information to CSV
 
 ```bash
-./aws-s3-cost-explorer buckets --csv buckets.csv
-./aws-s3-cost-explorer buckets --detailed --csv buckets_detailed.csv
+aws-s3-cost-explorer buckets --csv buckets.csv
+aws-s3-cost-explorer buckets --detailed --csv buckets_detailed.csv
 ```
 
 ### Get detailed storage tier info for a specific bucket
 
 ```bash
-./aws-s3-cost-explorer bucket-details my-bucket-name
+aws-s3-cost-explorer bucket-details my-bucket-name
 ```
 
 ### Export bucket details to CSV
 
 ```bash
-./aws-s3-cost-explorer bucket-details my-bucket-name --csv bucket_details.csv
+aws-s3-cost-explorer bucket-details my-bucket-name --csv bucket_details.csv
 ```
 
 ## Features
