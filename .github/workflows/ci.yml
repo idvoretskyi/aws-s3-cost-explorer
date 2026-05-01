@@ -2,26 +2,60 @@ name: CI
 
 on:
   push:
-    branches: [main]
+    branches: ["**"]
   pull_request:
-    branches: [main]
+    branches: ["**"]
+
+permissions:
+  contents: read
 
 jobs:
-  lint:
+  build:
+    name: Build & Vet
     runs-on: ubuntu-latest
-    permissions:
-      contents: read
+    strategy:
+      matrix:
+        go-version: ["1.24"]
+
     steps:
-      - uses: actions/checkout@v6
+      - name: Checkout
+        uses: actions/checkout@v6
 
-      - name: Set up Python
-        uses: actions/setup-python@v6
+      - name: Set up Go ${{ matrix.go-version }}
+        uses: actions/setup-go@v6
         with:
-          python-version: "3.x"
-          cache: "pip"
+          go-version: ${{ matrix.go-version }}
+          cache: true
 
-      - name: Install dependencies
-        run: pip install -r requirements.txt
+      - name: Verify dependencies
+        run: go mod verify
 
-      - name: Check syntax
-        run: python -m py_compile s3_cost_explorer.py
+      - name: Build
+        run: go build -v ./...
+
+      - name: Vet
+        run: go vet ./...
+
+  test:
+    name: Test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Set up Go
+        uses: actions/setup-go@v6
+        with:
+          go-version-file: go.mod
+          cache: true
+
+      - name: Run tests
+        run: go test -race -coverprofile=coverage.out -covermode=atomic ./...
+
+      - name: Upload coverage
+        uses: actions/upload-artifact@v7
+        if: always()
+        with:
+          name: coverage
+          path: coverage.out
+          retention-days: 7

@@ -1,6 +1,6 @@
 version: 2
 updates:
-  - package-ecosystem: "pip"
+  - package-ecosystem: "gomod"
     directory: "/"
     schedule:
       interval: "daily"
@@ -9,10 +9,11 @@ updates:
       - "idvoretskyi"
     assignees:
       - "idvoretskyi"
+
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule:
-      interval: "daily"
+      interval: "weekly"
     open-pull-requests-limit: 10
     reviewers:
       - "idvoretskyi"

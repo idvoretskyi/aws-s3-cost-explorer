@@ -1,82 +1,105 @@
 # AWS S3 Cost Explorer
 
-A simple CLI tool to retrieve S3 storage costs and storage tiers for buckets in your AWS account.
+A CLI tool to retrieve S3 storage costs and storage tiers for buckets in your AWS account.
+
+Written in Go. Produces a single self-contained binary — no runtime or virtualenv required.
 
 ## Installation
 
-1. Create a virtual environment and install dependencies:
+### From source
+
 ```bash
-python3 -m venv venv
-source venv/bin/activate
-pip install -r requirements.txt
+git clone https://github.com/idvoretskyi/aws-s3-cost-explorer.git
+cd aws-s3-cost-explorer
+go build -o aws-s3-cost-explorer .
 ```
 
-2. Ensure AWS credentials are configured:
+### Using `go install`
+
 ```bash
-aws configure
+go install github.com/idvoretskyi/aws-s3-cost-explorer@latest
+```
+
+Ensure `$(go env GOPATH)/bin` is on your `$PATH`.
+
+## Prerequisites
+
+AWS credentials must be configured via one of the standard methods:
+
+```bash
+aws configure          # AWS CLI profile
+# or set environment variables:
+export AWS_ACCESS_KEY_ID=...
+export AWS_SECRET_ACCESS_KEY=...
+export AWS_REGION=...
 ```
 
 ## Usage
 
-Make sure to activate the virtual environment before running commands:
+### Get S3 costs for the last 30 days
+
 ```bash
-source venv/bin/activate
+./aws-s3-cost-explorer costs
 ```
 
-### Get S3 costs for the last 30 days:
+### Get costs for a specific period
+
 ```bash
-python s3_cost_explorer.py costs
+./aws-s3-cost-explorer costs --days 7
 ```
 
-### Get costs for a specific period:
+### Export costs to CSV
+
 ```bash
-python s3_cost_explorer.py costs --days 7
+./aws-s3-cost-explorer costs --csv costs.csv
+./aws-s3-cost-explorer costs --days 7 --csv costs_7days.csv
 ```
 
-### Export costs to CSV:
+### List all buckets with storage tier information
+
 ```bash
-python s3_cost_explorer.py costs --csv costs.csv
-python s3_cost_explorer.py costs --days 7 --csv costs_7days.csv
+./aws-s3-cost-explorer buckets
 ```
 
-### List all buckets with storage tier information:
+### List all buckets with detailed storage tier breakdown
+
 ```bash
-python s3_cost_explorer.py buckets
+./aws-s3-cost-explorer buckets --detailed
 ```
 
-### List all buckets with detailed storage tier breakdown:
+### Export bucket information to CSV
+
 ```bash
-python s3_cost_explorer.py buckets --detailed
+./aws-s3-cost-explorer buckets --csv buckets.csv
+./aws-s3-cost-explorer buckets --detailed --csv buckets_detailed.csv
 ```
 
-### Export bucket information to CSV:
+### Get detailed storage tier info for a specific bucket
+
 ```bash
-python s3_cost_explorer.py buckets --csv buckets.csv
-python s3_cost_explorer.py buckets --detailed --csv buckets_detailed.csv
+./aws-s3-cost-explorer bucket-details my-bucket-name
 ```
 
-### Get detailed storage tier info for a specific bucket:
-```bash
-python s3_cost_explorer.py bucket-details my-bucket-name
-```
+### Export bucket details to CSV
 
-### Export bucket details to CSV:
 ```bash
-python s3_cost_explorer.py bucket-details my-bucket-name --csv bucket_details.csv
+./aws-s3-cost-explorer bucket-details my-bucket-name --csv bucket_details.csv
 ```
 
 ## Features
 
 - Retrieves total S3 costs with detailed breakdown by usage type
 - Shows storage tier distribution for each bucket
-- Supports multiple storage classes (Standard, IA, Glacier, Deep Archive, etc.)
-- Human-readable size formatting
-- Clean tabular output
-- CSV export functionality for all commands
+- Supports all S3 storage classes (Standard, IA, Glacier, Deep Archive, Intelligent-Tiering, One Zone-IA, Reduced Redundancy)
+- Falls back to `ListObjectsV2` when CloudWatch metrics are unavailable
+- Human-readable size formatting (B / KB / MB / GB / TB / PB)
+- Clean grid-style tabular output
+- CSV export for all commands
 
-## Requirements
+## Required AWS Permissions
 
-- Python 3.6+
-- AWS CLI configured with appropriate permissions
-- Cost Explorer API access (may require billing permissions)
-- CloudWatch metrics access for storage tier analysis
+| Service | Actions |
+|---|---|
+| S3 | `s3:ListAllMyBuckets`, `s3:GetBucketLocation`, `s3:ListBucket` |
+| CloudWatch | `cloudwatch:GetMetricStatistics` |
+| Cost Explorer | `ce:GetCostAndUsage` (requires billing permissions) |
