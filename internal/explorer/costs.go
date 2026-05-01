@@ -3,6 +3,7 @@ package explorer
 import (
 	"context"
 	"fmt"
+	"strconv"
 	"time"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
@@ -40,8 +41,11 @@ func (e *S3CostExplorer) GetS3Costs(ctx context.Context, days int) (float64, err
 	for _, result := range resp.ResultsByTime {
 		for _, group := range result.Groups {
 			if len(group.Keys) > 0 && group.Keys[0] == "Amazon Simple Storage Service" {
-				var cost float64
-				fmt.Sscanf(aws.ToString(group.Metrics["BlendedCost"].Amount), "%f", &cost)
+				amountStr := aws.ToString(group.Metrics["BlendedCost"].Amount)
+				cost, parseErr := strconv.ParseFloat(amountStr, 64)
+				if parseErr != nil {
+					return 0, fmt.Errorf("error parsing cost amount %q: %w", amountStr, parseErr)
+				}
 				total += cost
 			}
 		}
@@ -82,8 +86,11 @@ func (e *S3CostExplorer) GetDetailedS3Costs(ctx context.Context, days int) (map[
 				continue
 			}
 			usageType := group.Keys[0]
-			var cost float64
-			fmt.Sscanf(aws.ToString(group.Metrics["BlendedCost"].Amount), "%f", &cost)
+			amountStr := aws.ToString(group.Metrics["BlendedCost"].Amount)
+			cost, parseErr := strconv.ParseFloat(amountStr, 64)
+			if parseErr != nil {
+				return nil, fmt.Errorf("error parsing cost amount %q for %s: %w", amountStr, usageType, parseErr)
+			}
 			if cost > 0 {
 				breakdown[usageType] += cost
 			}

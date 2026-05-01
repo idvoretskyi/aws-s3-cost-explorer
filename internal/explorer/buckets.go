@@ -6,7 +6,6 @@ import (
 	"time"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
-	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/service/cloudwatch"
 	cwtypes "github.com/aws/aws-sdk-go-v2/service/cloudwatch/types"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
@@ -25,8 +24,8 @@ func (e *S3CostExplorer) GetS3Buckets(ctx context.Context) ([]string, error) {
 	return names, nil
 }
 
-// storageTypes mirrors the Python list exactly.
-var storageTypes = []string{
+// StorageTypes mirrors the Python list exactly and defines a stable iteration order.
+var StorageTypes = []string{
 	"StandardStorage",
 	"StandardIAStorage",
 	"ReducedRedundancyStorage",
@@ -54,12 +53,10 @@ func (e *S3CostExplorer) GetBucketStorageTiers(ctx context.Context, bucketName s
 		}
 	}
 
-	// Build a per-region CloudWatch client
-	cfg, err := config.LoadDefaultConfig(ctx, config.WithRegion(region))
-	if err != nil {
-		return nil, fmt.Errorf("error loading config for region %s: %w", region, err)
-	}
-	cwClient := cloudwatch.NewFromConfig(cfg)
+	// Build a per-region CloudWatch client by copying the base config.
+	regionCfg := e.Cfg
+	regionCfg.Region = region
+	cwClient := cloudwatch.NewFromConfig(regionCfg)
 
 	endTime := time.Now()
 	startTime := endTime.Add(-48 * time.Hour)
@@ -67,7 +64,7 @@ func (e *S3CostExplorer) GetBucketStorageTiers(ctx context.Context, bucketName s
 
 	tierData := make(map[string]float64)
 
-	for _, storageType := range storageTypes {
+	for _, storageType := range StorageTypes {
 		resp, err := cwClient.GetMetricStatistics(ctx, &cloudwatch.GetMetricStatisticsInput{
 			Namespace:  aws.String("AWS/S3"),
 			MetricName: aws.String("BucketSizeBytes"),
@@ -84,9 +81,15 @@ func (e *S3CostExplorer) GetBucketStorageTiers(ctx context.Context, bucketName s
 			continue
 		}
 		if len(resp.Datapoints) > 0 {
-			last := resp.Datapoints[len(resp.Datapoints)-1]
-			if aws.ToFloat64(last.Average) > 0 {
-				tierData[storageType] = aws.ToFloat64(last.Average)
+			// Select the datapoint with the latest timestamp to avoid arbitrary ordering.
+			latest := resp.Datapoints[0]
+			for _, dp := range resp.Datapoints[1:] {
+				if dp.Timestamp != nil && (latest.Timestamp == nil || dp.Timestamp.After(*latest.Timestamp)) {
+					latest = dp
+				}
+			}
+			if aws.ToFloat64(latest.Average) > 0 {
+				tierData[storageType] = aws.ToFloat64(latest.Average)
 			}
 		}
 	}
@@ -100,7 +103,7 @@ func (e *S3CostExplorer) GetBucketStorageTiers(ctx context.Context, bucketName s
 		for paginator.HasMorePages() {
 			page, err := paginator.NextPage(ctx)
 			if err != nil {
-				break
+				return nil, fmt.Errorf("error listing objects in bucket %s: %w", bucketName, err)
 			}
 			for _, obj := range page.Contents {
 				totalSize += float64(aws.ToInt64(obj.Size))

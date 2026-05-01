@@ -21,7 +21,10 @@ var BucketsCmd = &cobra.Command{
 	Short: "List all S3 buckets with storage information",
 	RunE: func(cmd *cobra.Command, args []string) error {
 		ctx := context.Background()
-		e := explorer.New(ctx)
+		e, err := explorer.New(ctx)
+		if err != nil {
+			return err
+		}
 
 		fmt.Println("Retrieving S3 bucket information...")
 		buckets, err := e.GetS3Buckets(ctx)
@@ -54,15 +57,21 @@ var BucketsCmd = &cobra.Command{
 			}
 
 			if bucketsDetailed {
-				for storageType, sizeBytes := range tierData {
+				for _, storageType := range explorer.StorageTypes {
+					sizeBytes, ok := tierData[storageType]
+					if !ok {
+						continue
+					}
 					rows = append(rows, []string{bucket, storageType, explorer.FormatBytes(sizeBytes)})
 				}
 			} else {
 				var totalSize float64
 				var types []string
-				for k, v := range tierData {
-					totalSize += v
-					types = append(types, k)
+				for _, storageType := range explorer.StorageTypes {
+					if v, ok := tierData[storageType]; ok {
+						totalSize += v
+						types = append(types, storageType)
+					}
 				}
 				rows = append(rows, []string{bucket, explorer.FormatBytes(totalSize), strings.Join(types, ", ")})
 			}

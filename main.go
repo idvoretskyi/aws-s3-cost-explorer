@@ -10,10 +10,14 @@ import (
 	"github.com/spf13/cobra"
 )
 
+// version is set at build time via -ldflags="-X main.version=<tag>".
+var version = "dev"
+
 var rootCmd = &cobra.Command{
-	Use:   "aws-s3-cost-explorer",
-	Short: "AWS S3 Cost Explorer CLI Tool",
-	Long:  "Retrieve storage costs and storage tiers for S3 buckets in your AWS account.",
+	Use:     "aws-s3-cost-explorer",
+	Short:   "AWS S3 Cost Explorer CLI Tool",
+	Long:    "Retrieve storage costs and storage tiers for S3 buckets in your AWS account.",
+	Version: version,
 }
 
 func main() {

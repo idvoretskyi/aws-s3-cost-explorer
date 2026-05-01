@@ -1,6 +1,8 @@
 module github.com/idvoretskyi/aws-s3-cost-explorer
 
-go 1.26.2
+go 1.24
+
+toolchain go1.24.13
 
 require (
 	github.com/aws/aws-sdk-go-v2 v1.41.7

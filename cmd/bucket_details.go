@@ -19,7 +19,10 @@ var BucketDetailsCmd = &cobra.Command{
 	RunE: func(cmd *cobra.Command, args []string) error {
 		bucketName := args[0]
 		ctx := context.Background()
-		e := explorer.New(ctx)
+		e, err := explorer.New(ctx)
+		if err != nil {
+			return err
+		}
 
 		fmt.Printf("Retrieving detailed information for bucket: %s\n", bucketName)
 		tierData, err := e.GetBucketStorageTiers(ctx, bucketName)
@@ -34,7 +37,11 @@ var BucketDetailsCmd = &cobra.Command{
 		headers := []string{"Storage Tier", "Size"}
 		var rows [][]string
 		var totalSize float64
-		for storageType, sizeBytes := range tierData {
+		for _, storageType := range explorer.StorageTypes {
+			sizeBytes, ok := tierData[storageType]
+			if !ok {
+				continue
+			}
 			rows = append(rows, []string{storageType, explorer.FormatBytes(sizeBytes)})
 			totalSize += sizeBytes
 		}

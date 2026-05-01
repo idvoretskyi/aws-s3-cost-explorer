@@ -21,19 +21,21 @@ var CostsCmd = &cobra.Command{
 	Short: "Get S3 storage costs for the specified period",
 	RunE: func(cmd *cobra.Command, args []string) error {
 		ctx := context.Background()
-		e := explorer.New(ctx)
+		e, err := explorer.New(ctx)
+		if err != nil {
+			return err
+		}
 
 		fmt.Printf("Retrieving S3 costs for the last %d days...\n", costsDays)
 		total, err := e.GetS3Costs(ctx, costsDays)
 		if err != nil {
-			fmt.Println(err)
+			return err
 		}
 		fmt.Printf("\nTotal S3 Cost (last %d days): $%.2f\n", costsDays, total)
 
 		detailed, err := e.GetDetailedS3Costs(ctx, costsDays)
 		if err != nil {
-			fmt.Println(err)
-			return nil
+			return err
 		}
 		if len(detailed) == 0 {
 			return nil

@@ -22,6 +22,5 @@ func WriteCSV(path string, headers []string, rows [][]string) error {
 	if err := w.WriteAll(rows); err != nil {
 		return err
 	}
-	w.Flush()
 	return w.Error()
 }

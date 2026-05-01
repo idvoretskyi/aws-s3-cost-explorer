@@ -32,6 +32,10 @@ jobs:
             goarch: amd64
             suffix: windows-amd64
             ext: .exe
+          - goos: windows
+            goarch: arm64
+            suffix: windows-arm64
+            ext: .exe
 
     steps:
       - name: Checkout
