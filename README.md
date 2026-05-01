@@ -12,6 +12,12 @@ Written in Go. Produces a single self-contained binary — no runtime or virtual
 
 ## Installation
 
+### Using Homebrew
+
+```bash
+brew install idvoretskyi/tap/aws-s3-cost-explorer
+```
+
 ### From source
 
 ```bash

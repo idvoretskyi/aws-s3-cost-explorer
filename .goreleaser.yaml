@@ -1,0 +1,77 @@
+version: 2
+
+project_name: aws-s3-cost-explorer
+
+before:
+  hooks:
+    - go mod tidy
+
+builds:
+  - id: aws-s3-cost-explorer
+    main: .
+    binary: aws-s3-cost-explorer
+    env:
+      - CGO_ENABLED=0
+    flags:
+      - -trimpath
+    ldflags:
+      - -s -w -X main.version={{.Version}}
+    goos: [linux, darwin]
+    goarch: [amd64, arm64]
+
+archives:
+  - id: default
+    name_template: "{{ .ProjectName }}_{{ .Version }}_{{ .Os }}_{{ .Arch }}"
+    formats: [tar.gz]
+    files:
+      - README.md
+      - LICENSE
+
+checksum:
+  name_template: "checksums.txt"
+  algorithm: sha256
+
+changelog:
+  sort: asc
+  use: github
+  filters:
+    exclude:
+      - "^Merge "
+      - "^docs:"
+      - "^test:"
+  groups:
+    - title: Features
+      regexp: "^.*feat[(\\w)]*:+.*$"
+      order: 0
+    - title: Bug fixes
+      regexp: "^.*fix[(\\w)]*:+.*$"
+      order: 1
+    - title: Others
+      order: 999
+
+release:
+  github:
+    owner: idvoretskyi
+    name: aws-s3-cost-explorer
+  draft: false
+  prerelease: auto
+
+brews:
+  - name: aws-s3-cost-explorer
+    repository:
+      owner: idvoretskyi
+      name: homebrew-tap
+      branch: main
+      token: "{{ .Env.HOMEBREW_TAP_TOKEN }}"
+    directory: Formula
+    homepage: "https://github.com/idvoretskyi/aws-s3-cost-explorer"
+    description: "CLI tool to retrieve S3 storage costs and storage tiers for buckets in your AWS account."
+    license: "MIT"
+    commit_author:
+      name: goreleaserbot
+      email: bot@goreleaser.com
+    commit_msg_template: "chore(formula): bump {{ .ProjectName }} to {{ .Tag }}"
+    install: |
+      bin.install "aws-s3-cost-explorer"
+    test: |
+      system "#{bin}/aws-s3-cost-explorer", "--help"
