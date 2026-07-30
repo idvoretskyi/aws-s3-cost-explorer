@@ -3,7 +3,7 @@ module github.com/idvoretskyi/aws-s3-cost-explorer
 go 1.25
 
 require (
-	github.com/aws/aws-sdk-go-v2 v1.43.1
+	github.com/aws/aws-sdk-go-v2 v1.43.2
 	github.com/aws/aws-sdk-go-v2/config v1.32.32
 	github.com/aws/aws-sdk-go-v2/service/cloudwatch v1.66.0
 	github.com/aws/aws-sdk-go-v2/service/costexplorer v1.67.1
